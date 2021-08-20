@@ -1,5 +1,8 @@
 package finalmaven;
 import javax.swing.*;
+
+import com.itextpdf.kernel.pdf.PageFlushingHelper;
+
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.event.*;
@@ -10,7 +13,7 @@ import java.sql.ResultSet;
 //rm main method
 //name the ecopy with policy name aswell as id
 //next button be disabled until all the details are filled
-public class AddPolicy2 extends JFrame implements ActionListener{
+public class UpdatePolicy2 extends JFrame implements ActionListener{
     JLabel[] arr = new JLabel[8];
     String[] labels = {"First premium","1st premium date","Premium Cycle", "Installment Premium"  , "Last Premium Date",
                         "From Bank A/C","Maturity Amount" , "Date of Maturity"};
@@ -24,6 +27,7 @@ public class AddPolicy2 extends JFrame implements ActionListener{
     JTextField[] nTarr = new JTextField[3];
 
     DateGetter dg = new DateGetter();
+    String[] pag2Fetch = new String[10];
     String[] agentName;
     JButton back,next,Cancel,Submit;
     JLabel image;
@@ -34,9 +38,9 @@ public class AddPolicy2 extends JFrame implements ActionListener{
 
 //tempSaveVariables
 
-AddPolicy ap;
+UpdatePolicy ap;
 String[] policyDetails,nomineeDetails;
-    public AddPolicy2(String username,String[] policyDet , String[] nomineeDet,AddPolicy app){
+    public UpdatePolicy2(String username,String[] policyDet , String[] nomineeDet,UpdatePolicy app,String polId){
         policyDetails=policyDet;
         nomineeDetails=nomineeDet;
         ap=app;
@@ -60,7 +64,24 @@ String[] policyDetails,nomineeDetails;
         }catch(Exception e){
             System.out.println("Initial connect AddPolicy2");
         }
-        
+        String fetch3 = "select firstPremium,firstPDate,premiumCycle,installmentPremium,lastPDate,FromBankAcc,maturityAmt,dateOfMaturity,agent from policies"+
+                        " where policyId='"+polId+"'";
+        try{
+            System.out.println(fetch3);
+            ResultSet rs = c.s.executeQuery(fetch3);
+            rs.next();
+            for(int j=0;j<8;j++){
+                pag2Fetch[j]=rs.getString(j+1);
+            }
+            String agentFetch = "select name,contactNO from agent where agentId="+rs.getInt(9);
+            ResultSet rs2 = c.s.executeQuery(agentFetch);
+            rs2.next();
+            pag2Fetch[8] = rs2.getString(1);
+            pag2Fetch[9] = rs2.getString(2);
+        }catch(Exception e){
+            System.out.println("ERROR IN PART3 FETCH");
+            e.printStackTrace();
+        }
         
 
         JLabel head = new JLabel("<html><u>Add Policy</u></html>");
@@ -87,6 +108,7 @@ String[] policyDetails,nomineeDetails;
             if(i==2){
                 String[] c1 = {"ONE TIME" , "YEARLY" , "HALF YEARLY" , "QUARTERLY" , "MONTHLY"};// will come from db
                 carr=new JComboBox<String>(c1);
+                carr.setSelectedItem(pag2Fetch[i]);
                 carr.setFont(fp.forLabel);
                 carr.addActionListener(this);
                 carr.setBounds(205,x,150,30);
@@ -97,6 +119,7 @@ String[] policyDetails,nomineeDetails;
             }
             
             tarr[i]= new PlaceholderTextField();
+            tarr[i].setText(pag2Fetch[i]);
             tarr[i].setFont(fp.forLabel);
             tarr[i].setForeground(Color.BLACK);
             tarr[i].setBounds(205,x,150,30);
@@ -125,6 +148,7 @@ String[] policyDetails,nomineeDetails;
             add(nArr[i]);
             
             nTarr[i]= new JTextField();
+            nTarr[i].setText(pag2Fetch[8+i]);
             nTarr[i].setFont(fp.forLabel);
             nTarr[i].setForeground(Color.BLACK);
             nTarr[i].setBounds(205,x,150,30);
@@ -137,6 +161,7 @@ String[] policyDetails,nomineeDetails;
         nTarr[0].setEnabled(false);
         // String[] agentName={"Divyesh Shah" ,"Kalpana Shah","Add New","None"};
         nCarr = new JComboBox<String>(agentName);
+        nCarr.setSelectedItem(pag2Fetch[8]);
         nCarr.setBounds(205,m,150,30);
         nCarr.setBackground(Color.WHITE);
         nCarr.setForeground(Color.BLACK);
@@ -212,7 +237,8 @@ String[] policyDetails,nomineeDetails;
             this.setVisible(false);
             
         }else if(ae.getSource() == next){
-            new AddeCopy(userName,policyDetails[0],policyDetails[4],this).setVisible(true);
+            // new AddeCopy(userName,policyDetails[0],policyDetails[4],this).setVisible(true);
+            System.out.println("Change E copy?");
             next.setVisible(false);
             Submit.setVisible(true);
             Cancel.setVisible(true);
@@ -289,16 +315,6 @@ String[] policyDetails,nomineeDetails;
             }
             System.out.println("++++++++++++++");
             System.out.println(policyQuery);
-
-            try{
-                Conn c = new Conn();
-                String insuranceTableQuery = "insert into insuranceType values('"+policyDetails[1]+"')";
-                c.s.executeUpdate(insuranceTableQuery);
-            }catch(Exception e){
-                System.out.println("In insuranceTable Update");
-                e.printStackTrace();
-            }
-
         }else if(ae.getSource() == nCarr){
             String selItem = (String)nCarr.getSelectedItem();
             if(selItem.equals("Add New")){

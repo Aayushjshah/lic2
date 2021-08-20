@@ -1,13 +1,14 @@
 package finalmaven;
 import javax.swing.*;
 
+import com.mysql.cj.protocol.x.FetchDoneEntity;
 
 import java.awt.Color;
 import java.awt.Image;
 import java.awt.event.*;
 import java.sql.ResultSet;
 
-public class AddPolicy extends JFrame implements ActionListener{
+public class UpdatePolicy extends JFrame implements ActionListener{
     JLabel[] arr = new JLabel[7];
     String[] labels = {"Policy Holder" , "Insurance Type" , "Policy NO." ,"Policy ID", "Policy Name" , "Company" , "Sum Assured"};
     JTextField[] tarr = new JTextField[4];
@@ -18,7 +19,7 @@ public class AddPolicy extends JFrame implements ActionListener{
     JLabel[] nArr = new JLabel[3];  //nominee relation
     String[] nLabel = {"Nominee", "Relation" , "Contact NO." };
     JTextField[] nTarr = new JTextField[3];
-
+    String[] fetchedData1 = new String[10];
 //new insurancetypr
     JTextField nInsuranceType,nCompanyTf;
     JLabel subHead,subHead2;
@@ -32,9 +33,11 @@ public class AddPolicy extends JFrame implements ActionListener{
 //tempSaveVariables
 String[] policyPg1 = new String[7];
 String[] nomineeMemory = new String[3];
-AddPolicy ap2;
-    public AddPolicy(String username,AddPolicy app2){
+UpdatePolicy ap2;
+String policyID;
+    public UpdatePolicy(String username,UpdatePolicy app2,String polId){
         //inital db connect to fill up dropdowns
+        policyID=polId;
         userName=username;
         ap2=app2;
         Conn c = new Conn();
@@ -83,8 +86,27 @@ AddPolicy ap2;
         }catch(Exception e){
             System.out.println("Initial connect AddPolicy");
         }
-        
-        
+//populate items        
+        String fetchPage1Details = "select holder,insuranceType,policyNo,policyId,policyName,Company,sumInsured from policies where policyId="+polId;
+        try{
+            ResultSet rs = c.s.executeQuery(fetchPage1Details);
+            rs.next();
+            for(int j=0;j<7;j++){
+                fetchedData1[j] = rs.getString(j+1);
+            }
+        }catch(Exception e){
+            System.out.println("Error in fetch part1");
+        }
+        String nomineeFetch =  "select Nname,Nrelation,NcontactNO from policies where policyId='"+polId+"'";
+        try{
+            ResultSet rs = c.s.executeQuery(nomineeFetch);
+            rs.next();
+            for(int j=7;j<10;j++){
+                fetchedData1[j] = rs.getString(j-6);
+            }
+        }catch(Exception e){
+            System.out.println("Error in fetch part1");
+        }
 
         JLabel head = new JLabel("<html><u>Add Policy</u></html>");
         head.setBounds(340,5,200,40);
@@ -109,6 +131,7 @@ AddPolicy ap2;
         carr[0]=new JComboBox<String>(c0);
         carr[0].setFont(fp.forLabel);
         carr[0].setBounds(175,x,150,30);
+        carr[0].setSelectedItem(fetchedData1[0]);
         x+=50;
         carr[0].setBackground(Color.WHITE);
         add(carr[0]);
@@ -116,6 +139,7 @@ AddPolicy ap2;
         
         // String[] c1 = {"ASSS","DDDD","Add new Type"};// will come from db
         carr[1]=new JComboBox<String>(c1);
+        carr[1].setSelectedItem(fetchedData1[1]);
         carr[1].setFont(fp.forLabel);
         carr[1].addActionListener(this);
         carr[1].setBounds(175,x,150,30);
@@ -124,6 +148,7 @@ AddPolicy ap2;
         add(carr[1]);
 
         tarr[0]= new JTextField();
+        tarr[0].setText(fetchedData1[2]);
         tarr[0].setFont(fp.forLabel);
         tarr[0].setForeground(Color.BLACK);
         tarr[0].setBounds(175,x,150,30);
@@ -131,6 +156,7 @@ AddPolicy ap2;
         add(tarr[0]);
 
         tarr[1]= new JTextField();
+        tarr[1].setText(fetchedData1[3]);
         tarr[1].setFont(fp.forLabel);
         tarr[1].setForeground(Color.BLACK);
         tarr[1].setBounds(175,x,150,30);
@@ -138,6 +164,7 @@ AddPolicy ap2;
         add(tarr[1]);
 
         tarr[2]= new JTextField();
+        tarr[2].setText(fetchedData1[4]);
         tarr[2].setFont(fp.forLabel);
         tarr[2].setForeground(Color.BLACK);
         tarr[2].setBounds(175,x,150,30);
@@ -146,6 +173,7 @@ AddPolicy ap2;
 
         // String[] c2 = {" LIC" , "KOTAK" , "NEW INDIA" , "STAR HEALTH" , "SBI"  , "add new Entry"};// will come from db//Company
         carr[2]=new JComboBox<String>(c2);
+        carr[2].setSelectedItem(fetchedData1[5]);
         carr[2].setFont(fp.forLabel);
         carr[2].setBounds(175,x,150,30);
         x+=50;
@@ -156,6 +184,7 @@ AddPolicy ap2;
 
 
         tarr[3]= new JTextField();
+        tarr[3].setText(fetchedData1[6]);
         tarr[3].setFont(fp.forLabel);
         tarr[3].setForeground(Color.BLACK);
         tarr[3].setBounds(175,x,150,30);
@@ -186,6 +215,7 @@ AddPolicy ap2;
             add(nArr[i]);
             
             nTarr[i]= new JTextField();
+            nTarr[i].setText(fetchedData1[7+i]);
             nTarr[i].setFont(fp.forLabel);
             nTarr[i].setForeground(Color.BLACK);
             nTarr[i].setBounds(175,x,150,30);
@@ -194,18 +224,19 @@ AddPolicy ap2;
 
             
         }
-        nTarr[0].setVisible(false);
+        // nTarr[0].setVisible(false);
         // c3 = {"Jignesh", "Aayush","Mannan","Rina","Add new"};//policyHolder will come from db
         //if Add new then then from dropdown to textfield
         //if not then auto fill rest 2 fields
         //add contact to register page
-        carr[3]=new JComboBox<String>(c3);
-        carr[3].setFont(fp.forLabel);
-        carr[3].setBounds(175,m,150,30);
-        // x+=50;
-        carr[3].addActionListener(this);
-        carr[3].setBackground(Color.WHITE);
-        add(carr[3]);                
+        // carr[3]=new JComboBox<String>(c3);
+        // carr[3].setSelectedItem(fetchedData1[7]);
+        // carr[3].setFont(fp.forLabel);
+        // carr[3].setBounds(175,m,150,30);
+        // // x+=50;
+        // carr[3].addActionListener(this);
+        // carr[3].setBackground(Color.WHITE);
+        // add(carr[3]);                
         
 //Add new Insurance TYPe
             //Render a form
@@ -233,27 +264,27 @@ AddPolicy ap2;
         add(subnInsuranceType);
 //New Company providing Insurance
 
-subHead2 = new JLabel("<html><u>Add New Company</u></html>");
-subHead2.setFont(fp.sHeadFont);
-subHead2.setBounds(450,100,300,30);
-subHead2.setVisible(false);
-add(subHead2);
+        subHead2 = new JLabel("<html><u>Add New Company</u></html>");
+        subHead2.setFont(fp.sHeadFont);
+        subHead2.setBounds(450,100,300,30);
+        subHead2.setVisible(false);
+        add(subHead2);
 
-nCompanyTf = new JTextField();
-nCompanyTf.setForeground(Color.BLACK);
-nCompanyTf.setFont(fp.forLabel);
-nCompanyTf.setBounds(485,150,200,30);
-nCompanyTf.setVisible(false);
-add(nCompanyTf);
+        nCompanyTf = new JTextField();
+        nCompanyTf.setForeground(Color.BLACK);
+        nCompanyTf.setFont(fp.forLabel);
+        nCompanyTf.setBounds(485,150,200,30);
+        nCompanyTf.setVisible(false);
+        add(nCompanyTf);
 
-nCompanyBut = new JButton("<html><u>Submit</u><html>");
-nCompanyBut.setBounds(510,200,150,30);
-nCompanyBut.setFont(fp.forLabel);
-nCompanyBut.setForeground(Color.WHITE);
-nCompanyBut.setBackground(Color.BLACK);
-nCompanyBut.setVisible(false);
-nCompanyBut.addActionListener(this);
-add(nCompanyBut);
+        nCompanyBut = new JButton("<html><u>Submit</u><html>");
+        nCompanyBut.setBounds(510,200,150,30);
+        nCompanyBut.setFont(fp.forLabel);
+        nCompanyBut.setForeground(Color.WHITE);
+        nCompanyBut.setBackground(Color.BLACK);
+        nCompanyBut.setVisible(false);
+        nCompanyBut.addActionListener(this);
+        add(nCompanyBut);
 
         //Image
         int ht=450,wdt=470;
@@ -362,7 +393,7 @@ add(nCompanyBut);
             
             this.setVisible(false);
             if(ap2==null){
-                new AddPolicy2(userName,policyPg1,nomineeMemory,this).setVisible(true);    
+                new UpdatePolicy2(userName,policyPg1,nomineeMemory,this,policyID).setVisible(true);    
             }else{
                 ap2.setVisible(true);
                 this.setVisible(false);
@@ -381,6 +412,7 @@ add(nCompanyBut);
             dispInsuranceTypeForm(false);
             DisableElse(false);
             //saving in arrMemory
+            
             policyPg1[1]=nInsuranceType.getText();
         }else  if(ae.getSource() == carr[1]){
             String selItem = (String)carr[1].getSelectedItem();
@@ -427,14 +459,8 @@ add(nCompanyBut);
             }
         }
     }
-
-
-
-
-
-
     public static void main(String[] args){
-        new AddPolicy("Manraj",null);
+        new UpdatePolicy("Manraj",null,"222");
     }
 }
     

@@ -9,7 +9,7 @@ public class yearPremiumReportFire {
     public String[][] arrayGiver(){
     Conn c = new Conn();
         String countQuery = "select count(*) from reminders where month";
-        String basicQuery = "select * from reminders where month";
+        String basicQuery = "select * from reminders where month order by month";
         try{
             try{
             ResultSet cs = c.s.executeQuery(countQuery);

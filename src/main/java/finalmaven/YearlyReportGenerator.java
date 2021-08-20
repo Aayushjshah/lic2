@@ -134,6 +134,7 @@ Text t2 = new Text(mnUi);
                 Paragraph ppc2 = new Paragraph(headers[i]);;
                 c2.add(ppc2);
                 c2.setTextAlignment(TextAlignment.CENTER);
+                c2.setVerticalAlignment(VerticalAlignment.MIDDLE);
                 c2.setBorder(Border.NO_BORDER);
                 c2.setFontSize(13f);
                 c2.setBackgroundColor(new DeviceRgb(63,169,219));
